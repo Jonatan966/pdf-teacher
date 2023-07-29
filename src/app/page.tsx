@@ -1,3 +1,9 @@
+import { Chat } from "@/components/domain/chat";
+
 export default function Home() {
-  return <h1>bom dia</h1>;
+  return (
+    <div className="flex flex-col min-h-screen items-center">
+      <Chat />
+    </div>
+  );
 }
