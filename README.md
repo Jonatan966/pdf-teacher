@@ -1,34 +1,31 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# PDF Teacher
 
-## Getting Started
+Experimento usando a API da OpenAI e a Vercel AI SDK, que consite em um chatbot, que permite enviar um PDF e "conversar com ele".
 
-First, run the development server:
+## Tecnologias usadas
+- Vercel AI SDK
+- Langchain
+- OpenAI
+- Supabase
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+## Como iniciar
+- É necessário configurar o Supabase com a tabela necessária para o funcionamento da aplicação. Consulte [este trecho](https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/supabase/#create-a-table-and-search-function-in-your-database) de um guia para saber o que fazer;
+- É necessário ter uma chave de acesso a API da OpenAI;
+- Preencha as variáveis de ambiente necessárias. Consulte o arquivo [.env.example](/.env.example)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Demonstração
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+https://github.com/Jonatan966/pdf-teacher/assets/37812781/e7e3541d-39e6-4055-9166-9f9b5fd36f41
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Fluxo
+- Primeiro, é necessário selecionar um PDF, e escrever uma pergunta;
+- Ao clicar em Enviar, uma requisição separada para o PDF é feita;
+  - O PDF é convertido para um hash MD5, e uma verificação no banco de dados é feita, verificando se o PDF já foi processado antes;
+  - Caso o PDF já tenha sido processado, essa requisição apenas retorna seu hash MD5;
+  - No caso contrário, o PDF é processado e seu conteúdo é transformado em vetores;
+  - O resultado do processamento é armazenado no banco de dados vetorial.
+- Uma nova requisição é feita, para a geração da resposta do chatbot.
+  - Um prompt template é usado para a geração da resposta;
+  - Uma busca semântica é feita no banco de dados vetorial, filtrando os conteúdos relevantes para geração da resposta;
+    - O hash MD5 do PDF previamente processado é usado para filtrar os resultados;
+  - Depois de todas as informações serem coletadas, a resposta é gerada e retornada em formato Stream.
