@@ -85,7 +85,7 @@ export function Chat() {
         </CardHeader>
       </Card>
 
-      <div className="flex-1 flex flex-col max-w-[450px] py-4 text-sm gap-2">
+      <div className="flex-1 flex flex-col max-w-[450px] py-4 text-sm gap-2  w-full">
         {messages.map((message) => (
           <p
             key={message.id}
@@ -103,7 +103,7 @@ export function Chat() {
 
       <Card className="max-w-[450px] w-full sticky sm:bottom-4 bottom-2 mt-4">
         {isWaiting && (
-          <div className="absolute w-full h-full bg-black bg-opacity-30 z-0 flex items-center justify-center">
+          <div className="absolute w-full h-full bg-black bg-opacity-30 z-0 flex items-center justify-center rounded-lg">
             <Loader
               className="animate-spin z-10 text-black dark:text-white"
               size={32}
