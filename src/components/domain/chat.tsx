@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { FileArchive, Loader, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeSwitcher } from "../ui/theme-switcher";
 
 export function Chat() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -70,15 +71,17 @@ export function Chat() {
             </CardTitle>
             <CardDescription>Converse com seu PDF!</CardDescription>
           </div>
-          <Button
-            style={{ margin: 0 }}
-            size="icon"
-            variant="destructive"
-            onClick={onClearChat}
-            disabled={!messages.length}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2" style={{ margin: 0 }}>
+            <ThemeSwitcher />
+            <Button
+              size="icon"
+              variant="destructive"
+              onClick={onClearChat}
+              disabled={!messages.length}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
       </Card>
 
@@ -100,8 +103,11 @@ export function Chat() {
 
       <Card className="max-w-[450px] w-full sticky sm:bottom-4 bottom-2 mt-4">
         {isWaiting && (
-          <div className="absolute w-full h-full bg-black bg-opacity-25 z-0 flex items-center justify-center">
-            <Loader className="animate-spin z-10" size={32} color="black" />
+          <div className="absolute w-full h-full bg-black bg-opacity-30 z-0 flex items-center justify-center">
+            <Loader
+              className="animate-spin z-10 text-black dark:text-white"
+              size={32}
+            />
           </div>
         )}
 
