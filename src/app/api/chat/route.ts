@@ -1,29 +1,12 @@
 import { StreamingTextResponse, LangChainStream } from "ai";
-import { ChatOpenAI } from "langchain/chat_models/openai";
 import { cookies } from "next/headers";
 
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PromptTemplate } from "langchain/prompts";
 import { RetrievalQAChain } from "langchain/chains";
-import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseVectorStore } from "@/lib/langchain";
+import { openAiChat } from "@/services/open-ai";
 
 // export const runtime = "edge";
-
-const supabaseVectorStore = new SupabaseVectorStore(
-  new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
-  {
-    client: createClient(
-      process.env.SUPABASE_URL as string,
-      process.env.SUPABASE_PRIVATE_KEY as string,
-      {
-        auth: { persistSession: false },
-      }
-    ),
-    tableName: "documents",
-    queryName: "match_documents",
-  }
-);
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
@@ -31,13 +14,6 @@ export async function POST(req: Request) {
   const targetMessage = messages.at(-1);
 
   const { stream, handlers } = LangChainStream();
-
-  const openAiChat = new ChatOpenAI({
-    openAIApiKey: process.env.OPENAI_API_KEY,
-    modelName: "gpt-3.5-turbo",
-    temperature: 0.3,
-    streaming: true,
-  });
 
   const prompt = new PromptTemplate({
     template: `
@@ -63,7 +39,6 @@ export async function POST(req: Request) {
     }),
     {
       prompt,
-      verbose: true,
     }
   );
 

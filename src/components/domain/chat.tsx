@@ -1,6 +1,8 @@
 "use client";
 
 import { useChat } from "ai/react";
+import { useRef, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,21 +16,41 @@ import { FileArchive, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Chat() {
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const [pdfHash, setPdfHash] = useState("");
   const {
     input,
     messages,
     isLoading,
+    setInput,
     handleInputChange,
     handleSubmit,
     setMessages,
   } = useChat();
 
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!pdfHash) {
+      const response = await fetch("/api/pdf", {
+        method: "POST",
+        body: new FormData(event.target as HTMLFormElement),
+      });
+
+      const data = await response.json();
+
+      setPdfHash(data.hash);
+    }
+
     handleSubmit(event);
   }
 
   function onClearChat() {
+    formRef.current?.reset();
     setMessages([]);
+    setPdfHash("");
+    setInput("");
   }
 
   return (
@@ -73,8 +95,15 @@ export function Chat() {
           <form
             className="mt-6 flex flex-col gap-2"
             onSubmit={handleSendMessage}
+            ref={formRef}
           >
-            <Input type="file" name="pdf" disabled={!!messages.length} />
+            <Input
+              type="file"
+              name="pdf"
+              accept="application/pdf"
+              disabled={!!messages.length}
+            />
+
             <div className="flex w-full gap-2">
               <Input
                 placeholder="O que quer perguntar?"
