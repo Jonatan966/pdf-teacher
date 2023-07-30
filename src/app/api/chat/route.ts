@@ -1,24 +1,27 @@
 import { StreamingTextResponse, LangChainStream } from "ai";
 import { ChatOpenAI } from "langchain/chat_models/openai";
+import { cookies } from "next/headers";
 
-import { RedisVectorStore } from "langchain/vectorstores/redis";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PromptTemplate } from "langchain/prompts";
 import { RetrievalQAChain } from "langchain/chains";
-import { createClient } from "redis";
+import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 // export const runtime = "edge";
 
-const redis = createClient({
-  url: "redis://127.0.0.1:6379",
-});
-
-const redisVectorStore = new RedisVectorStore(
+const supabaseVectorStore = new SupabaseVectorStore(
   new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
   {
-    indexName: "pdfs-embeddings",
-    redisClient: redis,
-    keyPrefix: "pdfs:",
+    client: createClient(
+      process.env.SUPABASE_URL as string,
+      process.env.SUPABASE_PRIVATE_KEY as string,
+      {
+        auth: { persistSession: false },
+      }
+    ),
+    tableName: "documents",
+    queryName: "match_documents",
   }
 );
 
@@ -51,17 +54,18 @@ export async function POST(req: Request) {
     inputVariables: ["context", "question"],
   });
 
+  const pdfHash = cookies().get("pdf-teacher:hash");
+
   const chain = RetrievalQAChain.fromLLM(
     openAiChat,
-    redisVectorStore.asRetriever(3),
+    supabaseVectorStore.asRetriever(3, {
+      hash: pdfHash?.value,
+    }),
     {
       prompt,
+      verbose: true,
     }
   );
-
-  if (!redis.isOpen) {
-    await redis.connect();
-  }
 
   chain
     .call(
