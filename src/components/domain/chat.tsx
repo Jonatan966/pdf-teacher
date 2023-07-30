@@ -12,13 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FileArchive, Trash2 } from "lucide-react";
+import { FileArchive, Loader, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Chat() {
   const formRef = useRef<HTMLFormElement>(null);
 
   const [pdfHash, setPdfHash] = useState("");
+  const [isProcessingPDF, setIsProcessingPDF] = useState(false);
   const {
     input,
     messages,
@@ -29,10 +30,14 @@ export function Chat() {
     setMessages,
   } = useChat();
 
+  const isWaiting = isLoading || isProcessingPDF;
+
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!pdfHash) {
+      setIsProcessingPDF(true);
+
       const response = await fetch("/api/pdf", {
         method: "POST",
         body: new FormData(event.target as HTMLFormElement),
@@ -41,6 +46,8 @@ export function Chat() {
       const data = await response.json();
 
       setPdfHash(data.hash);
+
+      setIsProcessingPDF(false);
     }
 
     handleSubmit(event);
@@ -55,8 +62,8 @@ export function Chat() {
 
   return (
     <>
-      <Card className="sticky top-4 mb-4">
-        <CardHeader className="flex-row items-start min-w-[350px]">
+      <Card className="sticky sm:top-4 top-2 mb-4 max-w-[450px] w-full">
+        <CardHeader className="flex-row items-start">
           <div className="flex-1">
             <CardTitle className="flex gap-2">
               <FileArchive /> PDF Teacher
@@ -68,13 +75,14 @@ export function Chat() {
             size="icon"
             variant="destructive"
             onClick={onClearChat}
+            disabled={!messages.length}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </CardHeader>
       </Card>
 
-      <div className="flex-1 flex flex-col w-[350px] py-4 text-sm gap-2 mb-48">
+      <div className="flex-1 flex flex-col max-w-[450px] py-4 text-sm gap-2">
         {messages.map((message) => (
           <p
             key={message.id}
@@ -90,7 +98,13 @@ export function Chat() {
         ))}
       </div>
 
-      <Card className="max-w-[350px] fixed bottom-4">
+      <Card className="max-w-[450px] w-full sticky sm:bottom-4 bottom-2 mt-4">
+        {isWaiting && (
+          <div className="absolute w-full h-full bg-black bg-opacity-25 z-0 flex items-center justify-center">
+            <Loader className="animate-spin z-10" size={32} color="black" />
+          </div>
+        )}
+
         <CardContent>
           <form
             className="mt-6 flex flex-col gap-2"
@@ -102,6 +116,7 @@ export function Chat() {
               name="pdf"
               accept="application/pdf"
               disabled={!!messages.length}
+              required
             />
 
             <div className="flex w-full gap-2">
@@ -109,9 +124,10 @@ export function Chat() {
                 placeholder="O que quer perguntar?"
                 value={input}
                 onChange={handleInputChange}
-                disabled={isLoading}
+                disabled={isWaiting}
+                required
               />
-              <Button disabled={isLoading}>Enviar</Button>
+              <Button disabled={isWaiting}>Enviar</Button>
             </div>
           </form>
         </CardContent>
